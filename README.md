@@ -33,6 +33,19 @@ For a little verbosity:
 pytest -vvv
 ```
 
+### Installation
+
+If you'd like to install this for use in other environments for whatever
+reason, then:
+
+```bash
+python setup.py install # This is the usual way, but I don't recommend it.
+# Instead, use the wheel.
+python setup.py bdist_wheel # Make the wheel first.
+
+pip install binary_search_tree --no-index --find-links=dist/
+```
+
 ## What's Going On?
 
 This module serializes and writes a Binary Search Tree into a cached file. It
