@@ -1,0 +1,5 @@
+wheel
+pip
+setuptools
+pylint
+doc8
