@@ -44,6 +44,7 @@ time. Additionally, this allows us to use large trees.
 
 ## Usage
 
+This library is written for Python 3. Do not attempt to use it with Python 2.x.
 
 ### Creating a Tree
 
@@ -62,6 +63,7 @@ tree[42] = "forty-two"
 
 ```python
 import binary_search_tree as bst
+
 tree = bst.BinarySearchTree(cache="my_cached_file.db")
 print(tree[0])
 # outputs "zero"
@@ -71,4 +73,24 @@ print(tree[42])
 
 ## Caveats
 
-There *are* some caveats to this.
+There *are* some caveats to this. Python's recursion limit is the biggest one.
+The `TreeNode` class retrieves the next items using recursion, so it hits
+Python's maximum recursion limit fairly quickly. This limit is a way of preventing
+stack overflow due to recursion, Python does not optimize tail recursion. However,
+it *is* possible to get across this limitation, by setting a higher recursion
+limit. That can be done thus:
+
+```python
+import sys
+sys.setrecursionlimit(5000)
+```
+
+However, note that doing so isn't really recommended unless you know the size of
+your tree and the depth of your recursion beforehand.
+
+I've implemented a rudimentary `@tail_call_optimized` decorator in this
+codebase but it is a small fix.
+
+Another caveat is that the retrieval is now only as fast the disk you are
+reading from. I'd instead write to a database since most databases
+use a manner of b-trees for their indexed columns.
