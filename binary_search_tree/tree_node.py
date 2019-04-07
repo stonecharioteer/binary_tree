@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import shelve
 
 class TreeNode:
     """Class definition for each node."""
@@ -82,3 +82,6 @@ class TreeNode:
             self.left_child.parent = self
         if self.has_right_child():
             self.right_child.parent = self
+
+    def __eq__(self, other):
+        return self.payload == other.payload

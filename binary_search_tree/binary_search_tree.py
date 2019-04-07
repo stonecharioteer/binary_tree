@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys
+import shelve
 import tempfile
 
 
@@ -9,36 +10,19 @@ from binary_search_tree.tail_call_optimized import tail_call_optimized
 
 class BinarySearchTree:
     """Base definition for a serializable BinarySearchTree."""
-    def __init__(self, cache=None):
+    def __init__(self, cache):
         """Initialization method. Pass a valid file path to the cache
-        argument. Leave it out if you're okay with the code creating a
-        tempfile which will be garbage collected later."""
-        # if cache is None:
-        #     self.cache = tempfile.TemporaryFile()
-        # else:
-        #     self.cache = cache
+        argument. This creates a shelve file, which utilizes a serialized
+        store of the tree and its values."""
         self.root = None
         self.size = 0
+        self.cache = shelve.open(cache, writeback=True)
+        for key in self.cache:
+            self[int(key)] = self.cache[key].payload
 
     def __repr__(self):
         return "<BinarySearchTree [Size: {}, root: {}]>".format(
             self.size, self.root)
-
-    @tail_call_optimized
-    def dump(self, file_path):
-        """Method to serialize and dump to a file.
-        This method dumps the entire tree into a file."""
-        import pickle
-        with open(file_path, "w") as f:
-            pickle.dump(self, f)
-
-    @staticmethod
-    def load(cls, file_path):
-        """Method to unserialize and load from a previously dumped file.
-        This method loads an entire tree into memory."""
-        import pickle
-        with open(file_path, "r") as f:
-            return pickle.load(f)
 
     def __len__(self):
         """Length method."""
@@ -48,11 +32,11 @@ class BinarySearchTree:
         """Internal length method."""
         return self.__len__()
 
-    @tail_call_optimized
     def __iter__(self):
         """Enables behaviour as an iterator."""
         return self.root.__iter__()
 
+    #@tail_call_optimized
     def put(self, key, value):
         """Internal helper method that interfaces with __setitem___"""
         if self.root is not None:
@@ -62,16 +46,23 @@ class BinarySearchTree:
                 import sys
                 rec_limit = sys.getrecursionlimit()
                 raise RecursionError(
-                    ("Python's interpreter limits the "
-                "maximum recursion limit to ~{} on this machine. This is "
-                "done to guard against stack overflow because the CPython "
-                "implementation doesn't optimize tail recursion, and "
-                "unbridled recursions can trigger stack overflows. "
-                "This creates problems with very large binary search trees, "
-                "Increase the limit as you require. It is usually 3x the "
-                "size of the tree.").format(rec_limit))
+                        "Python's interpreter limits the "
+                        "maximum recursion limit to ~{} on this machine. "
+                        "This is done to guard against stack overflow "
+                        "because the CPython implementation doesn't "
+                        "optimize tail recursion, and unbridled recursions "
+                        "can trigger stack overflows. This creates problems "
+                        "with very large binary search trees, "
+                        "Increase the limit as you require. "
+                        "It is usually 3x the "
+                        "size of the tree.".format(rec_limit))
         else:
-            self.root = TreeNode(key, value)
+            if self.cache.get(str(key)):
+                self.root = self.cache.get(str(key))
+            else:
+                self.cache[str(key)] = TreeNode(key, value)
+                self.root = self.cache[str(key)]
+
         self.size += 1
 
     @tail_call_optimized
@@ -82,14 +73,31 @@ class BinarySearchTree:
             if current_node.has_left_child():
                 self._put(key, value, current_node.left_child)
             else:
-                current_node.left_child = TreeNode(
+                # Refresh the current node
+                self.cache[str(key)] = TreeNode(
                     key, value, parent=current_node)
+                self.cache[str(current_node.key)] = TreeNode(
+                    current_node.key,
+                    current_node.payload,
+                    parent=current_node.parent,
+                    left=self.cache[str(key)]
+                    )
+                # FIXME: Is this part necessary now?
+                current_node.left_child = self.cache[str(key)]
         else:
             if current_node.has_right_child():
                 self._put(key, value, current_node.right_child)
             else:
-                current_node.right_child = TreeNode(
+                self.cache[str(key)] = TreeNode(
                     key, value, parent=current_node)
+                # Refresh the current node
+                self.cache[str(current_node.key)] = TreeNode(
+                    current_node.key,
+                    current_node.payload,
+                    parent=current_node.parent,
+                    right=self.cache[str(key)]
+                    )
+                current_node.right_child = self.cache[str(key)]
 
     def __setitem__(self, key, value):
         """Method to enable the indexing behaviour."""
@@ -98,7 +106,7 @@ class BinarySearchTree:
     def get(self, key):
         """Internal method to get a value given the key.
         Interacts with __getitem__"""
-        if self.root is not None:
+        if self.root:
             res = self._get(key, self.root)
             if res:
                 return res.payload
@@ -107,14 +115,15 @@ class BinarySearchTree:
         else:
             return None
 
-    @tail_call_optimized
     def _get(self, key, current_node):
         """Internal method that interferes when there is no root in
         this node."""
+        # FIXME: Where do I put the cache retrieval?
         if current_node is None:
             return None
         elif current_node.key == key:
-            return current_node
+            return self.cache[str(key)]
+            # return current_node
         elif key < current_node.key:
             return self._get(key, current_node.left_child)
         else:
