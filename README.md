@@ -1,8 +1,8 @@
 
-# Binary Search Tree Implementation in Python
+# Binary Tree Implementation in Python
 
 
-This module showcases how to implement a Binary Search Tree in Python.
+This module showcases how to implement a Binary Tree in Python.
 
 It implements serialization so that a tree can be written to a file and read
 back from said file.
@@ -43,12 +43,12 @@ python setup.py install # This is the usual way, but I don't recommend it.
 # Instead, use the wheel.
 python setup.py bdist_wheel # Make the wheel first.
 
-pip install binary_search_tree --no-index --find-links=dist/
+pip install binary_tree --no-index --find-links=dist/
 ```
 
 ## What's Going On?
 
-This module serializes and writes a Binary Search Tree into a cached file. It
+This module serializes and writes a Binary Tree into a cached file. It
 uses Python's `shelve` module, a module that allows us to implement database-
 like persistence on disk to retrieve Python objects. The advantage of using
 such an approach ensures that the entire tree is not loaded in memory all the
@@ -63,9 +63,9 @@ This library is written for Python 3. Do not attempt to use it with Python 2.x.
 
 ```python
 
-import binary_search_tree as bst
+import binary_tree as bt
 
-tree = bst.BinarySearchTree(cache="my_cached_file.db")
+tree = bt.BinaryTree(cache="my_cached_file.db")
 tree[0] = "zero"
 tree[1] = "one"
 tree[2] = "two"
@@ -75,9 +75,9 @@ tree[42] = "forty-two"
 ### Reading from a cache
 
 ```python
-import binary_search_tree as bst
+import binary_tree as bst
 
-tree = bst.BinarySearchTree(cache="my_cached_file.db")
+tree = bt.BinaryTree(cache="my_cached_file.db")
 print(tree[0])
 # outputs "zero"
 print(tree[42])
@@ -107,3 +107,4 @@ codebase but it is a small fix.
 Another caveat is that the retrieval is now only as fast the disk you are
 reading from. I'd instead write to a database since most databases
 use a manner of b-trees for their indexed columns.
+

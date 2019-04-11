@@ -4,14 +4,14 @@
 import os
 import pickle
 import pytest
-import binary_search_tree as bst
+import binary_tree as bt
 
 
 @pytest.fixture
-def sample_bst():
+def sample_bt():
     import random
     sample_data = set([random.randint(0,100000) for i in range(100)])
-    sample_tree = bst.BinarySearchTree(cache="sample.db")
+    sample_tree = bt.BinaryTree(cache="sample.db")
     for ix, i in enumerate(sample_data):
         sample_tree[ix] = i
     yield sample_tree
@@ -19,9 +19,9 @@ def sample_bst():
     os.remove("sample.db")
 
 
-def test_tree(sample_bst):
-    """Test that a simple bst can be constructed with the code."""
-    assert isinstance(sample_bst, bst.BinarySearchTree)
+def test_tree(sample_bt):
+    """Test that a simple bt can be constructed with the code."""
+    assert isinstance(sample_bst, bst.BinaryTree)
 
 
 @pytest.fixture

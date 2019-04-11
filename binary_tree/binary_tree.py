@@ -5,11 +5,11 @@ import shelve
 import tempfile
 
 
-from binary_search_tree.tree_node import TreeNode
-from binary_search_tree.tail_call_optimized import tail_call_optimized
+from binary_tree.tree_node import TreeNode
+from binary_tree.tail_call_optimized import tail_call_optimized
 
-class BinarySearchTree:
-    """Base definition for a serializable BinarySearchTree."""
+class BinaryTree:
+    """Base definition for a serializable BinaryTree."""
     def __init__(self, cache):
         """Initialization method. Pass a valid file path to the cache
         argument. This creates a shelve file, which utilizes a serialized
@@ -52,7 +52,7 @@ class BinarySearchTree:
                         "because the CPython implementation doesn't "
                         "optimize tail recursion, and unbridled recursions "
                         "can trigger stack overflows. This creates problems "
-                        "with very large binary search trees, "
+                        "with very large binary trees, "
                         "Increase the limit as you require. "
                         "It is usually 3x the "
                         "size of the tree.".format(rec_limit))

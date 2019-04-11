@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 import setuptools
 
-import binary_search_tree as bst
+import binary_tree as bt
 
-__version__ = bst.__version__
-__author__ = bst.__author__
-__email__ = bst.__email__
+__version__ = bt.__version__
+__author__ = bt.__author__
+__email__ = bt.__email__
 
 
 with open("requirements.txt") as f:
@@ -20,7 +20,7 @@ with open("requirements_test.txt") as f:
 
 
 setuptools.setup(
-    name="binary_search_tree",
+    name="binary_tree",
     version=__version__,
     author=__author__,
     author_email=__email__,
