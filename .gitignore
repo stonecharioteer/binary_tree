@@ -116,3 +116,6 @@ dmypy.json
 
 # local trials folder.
 .trials/
+
+prof/
+.vscode/
