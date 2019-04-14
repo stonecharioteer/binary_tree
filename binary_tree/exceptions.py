@@ -7,3 +7,10 @@ class InvalidTraversalMode(Exception):
     it isn't anticipated. Right now, the only implemented
     modes are inorder, postorder and preorder."""
     pass
+
+
+class InsufficientTraversalInformation(Exception):
+    """Exception raised when not enough traversal caches
+    are specified to the load method of the TreeNode class.
+    At least 2 of the 3 types are required at any point of time."""
+    pass
