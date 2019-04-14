@@ -2,16 +2,16 @@
 # -*- coding: utf-8 -*-
 """Binary Tree module.
 
-This library allows creation of serializable Binary Trees. 
-These trees can grow to be any size. 
+This library allows creation of
+These trees can grow to be any size.
 
-The tree items are cached on disk, and read from disk on demand.
+The tree items can be cached into disk and read again from disk.
 """
 
-__all__ = ["BinaryTree", "TreeNode"]
-__version__ = "2019.04-beta"
+__all__ = ["TreeNode"]
+__version__ = "2019.4b0"
 __author__ = "Vinay Keerthi"
 __email__ = "ktvkvinaykeerthi+binary_tree@gmail.com"
 
-from binary_tree.binary_tree import BinaryTree
+
 from binary_tree.tree_node import TreeNode
