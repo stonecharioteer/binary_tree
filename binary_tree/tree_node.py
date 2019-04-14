@@ -1,22 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import shelve
+from binary_tree.exceptions import InvalidTraversalMode
 
 class TreeNode:
-    """Class definition for each node."""
+    """Class definition for each node of a binary tree."""
+
     def __init__(
-        self, key, value,
+        self, value,
         left=None, right=None, parent=None):
         """Initializer method."""
-        self.key = key
-        self.payload = value
+        self.value = value
         self.left_child = left
         self.right_child = right
         self.parent = parent
 
     def __repr__(self):
-        repr_node = "<TreeNode [Key: {}, payload: {}]>".format(
-            self.key, self.payload)
+        repr_node = "<TreeNode [Value: {}]>".format(self.value)
         return repr_node
 
     def __iter__(self):
@@ -73,15 +72,51 @@ class TreeNode:
         """Checks if this node has children."""
         return not self.is_leaf()
 
-    def replace_node_data(self, key, value, left_child, right_child):
-        self.key=key
-        self.payload = value
-        self.left_child = left_child
-        self.right_child = right_child
-        if self.has_left_child():
-            self.left_child.parent = self
-        if self.has_right_child():
-            self.right_child.parent = self
-
     def __eq__(self, other):
-        return self.payload == other.payload
+        return self.value == other.value
+
+    @staticmethod
+    def traverse(node, mode="preorder"):
+        """returns the tree traversal given a node in one of 3 modes.
+        The accepted values for mode are: preorder, postorder or inorder.
+        """
+        if mode.lower() == "preorder":
+            traversal = [node.value]
+            if node.left_child:
+                traversal.extend(
+                    TreeNode.traverse(node.left_child, mode=mode))
+            if node.right_child:
+                traversal.extend(
+                    TreeNode.traverse(node.right_child, mode=mode))
+        elif mode.lower() == "postorder":
+            traversal = []
+            if node.left_child:
+                traversal.extend(
+                    TreeNode.traverse(node.left_child, mode=mode))
+            if node.right_child:
+                traversal.extend(
+                    TreeNode.traverse(node.right_child, mode=mode))
+            traversal.append(node.value)
+        elif mode.lower() == "inorder":
+            traversal = []
+            if node.left_child:
+                traversal.extend(
+                    TreeNode.traverse(node.left_child, mode=mode))
+            traversal.append(node.value)
+            if node.right_child:
+                traversal.extend(
+                    TreeNode.traverse(node.right_child, mode=mode))
+        else:
+            raise InvalidTraversalMode(
+            ("{} is not an acceptable or "
+            "implemented form of traversal! "
+            "Choose from preorder, postorder "
+            "or inorder traversal.").format(mode))
+        return traversal
+
+    def save_to_disk(
+        file_prefix, preorder=True, inorder=True, postorder=False):
+        """Saves a node and its children into 2 files.
+        To check for a unique tree, you need one of two traversal information
+        if the tree is not balanced or sorted.
+        """
