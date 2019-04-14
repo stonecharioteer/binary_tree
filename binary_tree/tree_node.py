@@ -140,14 +140,54 @@ class TreeNode:
     @staticmethod
     def load(preorder=None, postorder=None, inorder=None):
         """Loads the binary tree given two of these three files."""
-
+        data_is_sufficient = (preorder and inorder) or (
+            postorder and inorder) or (preorder and postorder)
+        if not data_is_sufficient:
+            raise InsufficientTraversalInformation(
+                "Specify at least 2 of the three modes to load a "
+                "unique Binary Tree")
         if preorder and inorder:
             pass
         elif postorder and inorder:
             pass
         elif preorder and postorder:
             pass
-        else:
+
+    @staticmethod
+    def parse_files(preorder=None, postorder=None, inorder=None):
+
+        data_is_sufficient = (preorder and inorder) or (
+            postorder and inorder) or (preorder and postorder)
+        if not data_is_sufficient:
             raise InsufficientTraversalInformation(
                 "Specify at least 2 of the three modes to load a "
                 "unique Binary Tree")
+        if preorder:
+            with open(preorder, "rb+") as f:
+                preorder_traversal = [
+                    l.decode("ascii").strip() for l in f.readlines()
+                    ]
+
+        if inorder:
+            with open(inorder, "rb+") as f:
+                inorder_traversal = [
+                    l.decode("ascii").strip() for l in f.readlines()
+                    ]
+
+        if postorder:
+            with open(postorder, "rb+") as f:
+                postorder_traversal = [
+                    l.decode("ascii").strip() for l in f.readlines()
+                    ]
+        if preorder and inorder:
+            return TreeNode.load(
+                preorder=preorder_traversal,
+                inorder=inorder_traversal)
+        elif postorder and inorder:
+            return TreeNode.load(
+                postorder=postorder_traversal,
+                inorder=inorder_traversal)
+        elif postorder and preorder:
+            return TreeNode.load(
+                postorder=postorder_traversal,
+                preorder=preorder_traversal)
