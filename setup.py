@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import setuptools
-
 import binary_tree as bt
 
 __version__ = bt.__version__
@@ -27,7 +26,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires=requirements,
     setup_requires=setup_requirements,
-    test_requires=test_requirements,
+    tests_require=test_requirements,
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Environment :: Console",
