@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from binary_tree.exceptions import InvalidTraversalMode
+from binary_tree.exceptions import (
+    InvalidTraversalMode, InsufficientTraversalInformation)
 
 class TreeNode:
     """Class definition for each node of a binary tree."""
@@ -120,3 +121,33 @@ class TreeNode:
         To check for a unique tree, you need one of two traversal information
         if the tree is not balanced or sorted.
         """
+        if inorder:
+            inorder = TreeNode.traverse(self, mode="inorder")
+            with open("{}.inorder".format(file_prefix), "wb+") as f:
+                for node in inorder:
+                    f.write("{}\n".format(node))
+        if preorder:
+            preorder = TreeNode.traverse(self, mode="preorder")
+            with open("{}.preorder".format(file_prefix), "wb+") as f:
+                for node in preorder:
+                    f.write("{}\n".format(node))
+        if postorder:
+            postorder = TreeNode.traverse(self, mode="postorder")
+            with open("{}.postorder".format(file_prefix), "wb+") as f:
+                for node in postorder:
+                    f.write("{}\n".format(node))
+
+    @staticmethod
+    def load(preorder=None, postorder=None, inorder=None):
+        """Loads the binary tree given two of these three files."""
+
+        if preorder and inorder:
+            pass
+        elif postorder and inorder:
+            pass
+        elif preorder and postorder:
+            pass
+        else:
+            raise InsufficientTraversalInformation(
+                "Specify at least 2 of the three modes to load a "
+                "unique Binary Tree")
