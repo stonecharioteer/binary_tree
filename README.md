@@ -117,7 +117,11 @@ node = bt.TreeNode.parse_files(
 
 ## Caveats
 
-There *are* some caveats to this. Python's recursion limit is the biggest one.
+There *are* some caveats to this.
+
+
+### Recursion Caveat
+
 The `TreeNode` class retrieves the next items using recursion, so it hits
 Python's maximum recursion limit fairly quickly. This limit is a way of preventing
 stack overflow due to recursion, Python does not optimize tail recursion. However,
@@ -135,6 +139,8 @@ your tree and the depth of your recursion beforehand.
 I've implemented a rudimentary `@tail_call_optimized` decorator in this
 codebase but it is a small fix.
 
+### Disk and Memory Utilization
+
 Another caveat is that the retrieval is now only as fast the disk you are
 reading from. Additionally, if you're reading the entire tree to memory,
 if the tree has above 10 million nodes, you may have some issues with memory.
@@ -142,3 +148,9 @@ if the tree has above 10 million nodes, you may have some issues with memory.
 I could also implement a memory map to solve that issue. Python comes with
 a built-in mmap module to achieve something of this sort. I am, however, unaware
 of its own caveats.
+
+### Speed
+
+Here are a few stats with the writing and reading. As you can see, the longest
+calls are associated with the python recursion. Instead, I could rewrite this
+module using cython and gain a good speed up. Numba is another possibility.
