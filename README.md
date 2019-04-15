@@ -49,8 +49,9 @@ pip install binary_tree --no-index --find-links=dist/
 ## What's Going On?
 
 This module utilizes the fact that a binary tree can be serialized by
-storing 2 modes of traversal. Given the preorder and inorder traversal, or
-postorder and inorder traversal information, a binary tree can be reassembled.
+storing 2 modes of depth-first traversal. Given the preorder and inorder
+traversal, or postorder and inorder traversal information, a binary
+tree can be reassembled.
 
 Hence, this module allows users to dump the tree to disk using these two
 files. This ensures that the user can read back the same tree.
@@ -117,10 +118,11 @@ node = bt.TreeNode.parse_files(
 
 ## Caveats
 
-There *are* some caveats to this.
+There *are* some caveats to this. I've listed a few that comes immediately
+to mind here.
 
 
-### Recursion Caveat
+### Recursion
 
 The `TreeNode` class retrieves the next items using recursion, so it hits
 Python's maximum recursion limit fairly quickly. This limit is a way of preventing
@@ -141,16 +143,28 @@ codebase but it is a small fix.
 
 ### Disk and Memory Utilization
 
-Another caveat is that the retrieval is now only as fast the disk you are
+Another major caveat is that the retrieval is now only as fast the disk you are
 reading from. Additionally, if you're reading the entire tree to memory,
 if the tree has above 10 million nodes, you may have some issues with memory.
 
+Since there are 2 files involved, the memory requirement is 2n where n is the
+size of the tree. This is hardly an efficient problem.
+
 I could also implement a memory map to solve that issue. Python comes with
-a built-in mmap module to achieve something of this sort. I am, however, unaware
-of its own caveats.
+a built-in ``mmap`` module to achieve something of this sort. ``mmap`` files
+seem to support regex and other file seeking modes. I am, however,
+unaware of its own caveats.
+
+Since this problem required me to use my own ways of writing and reading a
+file, I used that instead. I am fairly certain ``mmap`` could surely solve
+the problems that users will indeed face with regards to the loading and
+unloading of the tree.
 
 ### Speed
 
 Here are a few stats with the writing and reading. As you can see, the longest
 calls are associated with the python recursion. Instead, I could rewrite this
 module using cython and gain a good speed up. Numba is another possibility.
+
+I worry that this module will definitely have issues when dealing with upwards
+of 250 million nodes.
