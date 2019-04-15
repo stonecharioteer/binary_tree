@@ -51,9 +51,11 @@ pip install binary_tree --no-index --find-links=dist/
 This module utilizes the fact that a binary tree can be serialized by
 storing 2 modes of depth-first traversal. Given the preorder and inorder
 traversal, or postorder and inorder traversal information, a binary
-tree can be reassembled.
+tree can be reassembled. Note that if the binary tree is also full, i.e., each
+node has at least 2 children, it can be read from just the preorder and
+postorder traversals. However, this isn't covered here.
 
-Hence, this module allows users to dump the tree to disk using these two
+This module allows users to dump the tree to disk using these two
 files. This ensures that the user can read back the same tree.
 
 
@@ -124,28 +126,32 @@ to mind here.
 
 ### Recursion
 
+The major issue is recursion.
+
 The `TreeNode` class retrieves the next items using recursion, so it hits
 Python's maximum recursion limit fairly quickly. This limit is a way of preventing
-stack overflow due to recursion, Python does not optimize tail recursion. However,
-it *is* possible to get across this limitation, by setting a higher recursion
-limit. That can be done thus:
+stack overflow due to recursion. Python does not optimize tail recursion.
+This is a huge limiting factor with respect to the size of the trees. While
+it is not theoretically impossible to implement tail recursion, as I have
+tried in the rudimentary `binary_tree.tail_call_optimized.tail_call_optimized`
+decorator, it comes with its own baggage.
+
+However, it *is* possible to get across this limitation, by setting
+a higher recursion limit. That can be done thus:
 
 ```python
 import sys
 sys.setrecursionlimit(5000)
 ```
 
-However, note that doing so isn't really recommended unless you know the size of
-your tree and the depth of your recursion beforehand.
-
-I've implemented a rudimentary `@tail_call_optimized` decorator in this
-codebase but it is a small fix.
+However, note that doing so isn't really recommended unless you know the
+size of your tree and the depth of your recursion beforehand.
 
 ### Disk and Memory Utilization
 
 Another major caveat is that the retrieval is now only as fast the disk you are
 reading from. Additionally, if you're reading the entire tree to memory,
-if the tree has above 10 million nodes, you may have some issues with memory.
+if the tree has above 1 billion nodes, you may have some issues with memory.
 
 Since there are 2 files involved, the memory requirement is 2n where n is the
 size of the tree. This is hardly an efficient problem.
@@ -162,9 +168,34 @@ unloading of the tree.
 
 ### Speed
 
-Here are a few stats with the writing and reading. As you can see, the longest
-calls are associated with the python recursion. Instead, I could rewrite this
-module using cython and gain a good speed up. Numba is another possibility.
+*Profile data for the ``test_giant_deserialize_preorder_inorder`` test**
+
+| ncalls | tottime | percall | cumtime | percall filename:lineno(function)                                    |
+|--------|---------|---------|---------|----------------------------------------------------------------------|
+| 1      | 0.000   | 0.000   | 1.225   | 1.225 runner.py:118(pytest_runtest_call)                             |
+| 1      | 0.000   | 0.000   | 1.225   | 1.225 python.py:1436(runtest)                                        |
+| 1      | 0.000   | 0.000   | 1.225   | 1.225 hooks.py:275(__call__)                                         |
+| 1      | 0.000   | 0.000   | 1.225   | 1.225 manager.py:65(_hookexec)                                       |
+| 1      | 0.000   | 0.000   | 1.225   | 1.225 manager.py:59()                                                |
+| 1      | 0.000   | 0.000   | 1.225   | 1.225 callers.py:157(_multicall)                                     |
+| 1      | 0.000   | 0.000   | 1.225   | 1.225 python.py:156(pytest_pyfunc_call)                              |
+| 1      | 0.000   | 0.000   | 1.225   | 1.225 test_serialize.py:229(test_giant_deserialize_preorder_inorder) |
+| 1      | 0.000   | 0.000   | 1.215   | 1.215 tree_node.py:211(parse_files)                                  |
+| 1001/1 | 0.016   | 0.000   | 1.213   | 1.213 tree_node.py:113(load)                                         |
+| 500    | 0.677   | 0.001   | 0.677   | 0.001 tree_node.py:149()                                             |
+| 500    | 0.517   | 0.001   | 0.517   | 0.001 tree_node.py:163()                                             |
+| 4004/4 | 0.005   | 0.000   | 0.008   | 0.002 tree_node.py:42(traverse)                                      |
+| 1      | 0.001   | 0.001   | 0.007   | 0.007 tree_node.py:81(save_to_disk)                                  |
+| 1001   | 0.002   | 0.000   | 0.002   | 0.000 {method 'index' of 'list' objects}                             |
+| 4000   | 0.002   | 0.000   | 0.002   | 0.000 {method 'extend' of 'list' objects}                            |
+| 1001   | 0.001   | 0.000   | 0.001   | 0.000 tree_node.py:11(__init__)                                      |
+| 1      | 0.000   | 0.000   | 0.001   | 0.001 tree_node.py:227()                                             |
+| 1      | 0.000   | 0.000   | 0.001   | 0.001 tree_node.py:233()                                             |
+| 2005   | 0.001   | 0.000   | 0.001   | 0.000 {method 'format' of 'str' object                               |
+
+As you can see, the longest calls are associated with the
+python recursion. Instead, I could rewrite this module using cython and
+gain a good speed up. Numba is another possibility.
 
 I worry that this module will definitely have issues when dealing with upwards
-of 250 million nodes.
+of 100 million nodes.
