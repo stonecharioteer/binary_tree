@@ -65,6 +65,29 @@ def test_basic_deserialize_preorder_inorder(basic_tree):
             deserialized_tree, mode="inorder")
 
 
+def test_basic_deserialize_postorder_inorder(basic_tree):
+    """Writes the tree into two files and checks if they can be read back to
+    create the same tree."""
+    basic_tree.save_to_disk(
+        "basic_tree", postorder=True, preorder=False, inorder=True)
+
+    deserialized_tree = TreeNode.parse_files(
+        postorder="basic_tree.postorder",
+        inorder="basic_tree.inorder")
+
+    assert TreeNode.traverse(
+        basic_tree, mode="preorder") == TreeNode.traverse(
+            deserialized_tree, mode="preorder")
+
+    assert TreeNode.traverse(
+        basic_tree, mode="postorder") == TreeNode.traverse(
+            deserialized_tree, mode="postorder")
+
+    assert TreeNode.traverse(
+        basic_tree, mode="inorder") == TreeNode.traverse(
+            deserialized_tree, mode="inorder")
+
+
 @pytest.fixture
 def longer_tree():
     """Returns a longer tree with a preorder traversal of:
@@ -141,4 +164,82 @@ def test_longer_deserialize_preorder_inorder(longer_tree):
 
     assert TreeNode.traverse(
         longer_tree, mode="inorder") == TreeNode.traverse(
+            deserialized_tree, mode="inorder")
+
+
+def test_longer_deserialize_postorder_inorder(longer_tree):
+    """Writes the tree into two files and checks if they can be read back to
+    create the same tree."""
+    longer_tree.save_to_disk(
+        "longer_tree",
+        postorder=True,
+        preorder=False,
+        inorder=True)
+
+    deserialized_tree = TreeNode.parse_files(
+        postorder="longer_tree.postorder",
+        inorder="longer_tree.inorder")
+
+    assert TreeNode.traverse(
+        longer_tree, mode="preorder") == TreeNode.traverse(
+            deserialized_tree, mode="preorder")
+
+    assert TreeNode.traverse(
+        longer_tree, mode="postorder") == TreeNode.traverse(
+            deserialized_tree, mode="postorder")
+
+    assert TreeNode.traverse(
+        longer_tree, mode="inorder") == TreeNode.traverse(
+            deserialized_tree, mode="inorder")
+
+
+@pytest.fixture
+def giant_tree():
+    """Fixture to generate a massive binary tree."""
+    import random
+
+    def get_random_node_value(size):
+        """Function to get a random node value"""
+        nonlocal node_ids
+        node_value = 0
+        while node_value in node_ids:
+            node_value = random.randint(0, size)
+        node_ids.update({node_value})
+        return node_value
+
+    node = TreeNode(1)
+    node_ids = {1}
+    node_ = node
+    size = 10**8
+    while len(node_ids) < size:
+        node_.left_child = TreeNode(get_random_node_value(size))
+        node_.right_child = TreeNode(get_random_node_value(size))
+        if random.random() < 0.5:
+            node_ = node_.left_child
+        else:
+            node_ = node_.right_child
+    yield node
+    del node
+
+
+def test_giant_deserialize_preorder_inorder(giant_tree):
+    """Writes the tree into two files and checks if they can be read back to
+    create the same tree."""
+    giant_tree.save_to_disk(
+        "giant_tree")
+
+    deserialized_tree = TreeNode.parse_files(
+        preorder="giant_tree.preorder",
+        inorder="giant_tree.inorder")
+
+    assert TreeNode.traverse(
+        giant_tree, mode="preorder") == TreeNode.traverse(
+            deserialized_tree, mode="preorder")
+
+    assert TreeNode.traverse(
+        giant_tree, mode="postorder") == TreeNode.traverse(
+            deserialized_tree, mode="postorder")
+
+    assert TreeNode.traverse(
+        giant_tree, mode="inorder") == TreeNode.traverse(
             deserialized_tree, mode="inorder")

@@ -4,6 +4,8 @@ from binary_tree.exceptions import (
     InvalidTraversalMode, InsufficientTraversalInformation,
     InvalidChildError, InvalidValueError)
 
+from binary_tree.tail_call_optimized import tail_call_optimized
+
 class TreeNode:
     """Class definition for each node of a binary tree."""
 
@@ -35,6 +37,7 @@ class TreeNode:
         return repr_node
 
     @staticmethod
+    @tail_call_optimized
     def traverse(node, mode="preorder"):
         """returns the tree traversal given a node in one of 3 modes.
         The accepted values for mode are: preorder, postorder or inorder.
@@ -79,30 +82,41 @@ class TreeNode:
         To check for a unique tree, you need one of two traversal information
         if the tree is not balanced or sorted.
         """
+        import warnings
         if inorder:
             inorder = TreeNode.traverse(self, mode="inorder")
             with open("{}.inorder".format(file_prefix), "wb+") as f:
                 for node in inorder:
                     f.write("{}\n".format(node).encode("utf-8"))
+        else:
+            warnings.warn("You have saved insufficient information "
+            "regarding the tree to disk. You will need the inorder "
+            "traversal information to reassemble the tree.")
         if preorder:
             preorder = TreeNode.traverse(self, mode="preorder")
             with open("{}.preorder".format(file_prefix), "wb+") as f:
                 for node in preorder:
                     f.write("{}\n".format(node).encode("utf-8"))
-        if postorder:
+        elif postorder:
             postorder = TreeNode.traverse(self, mode="postorder")
             with open("{}.postorder".format(file_prefix), "wb+") as f:
                 for node in postorder:
                     f.write("{}\n".format(node).encode("utf-8"))
+        else:
+            warnings.warn("You have saved insufficient information "
+            "regarding the tree to disk. You need at least one of the "
+            "preorder and postorder traversals.")
 
     @staticmethod
     def load(preorder=None, postorder=None, inorder=None):
-        """Loads the binary tree given two of these three traversals.
+        """Loads the binary tree given one of the preorder and postorder, along
+        with the inorder.
         If given preorder and inorder, it uses that.
-
+        Note: It is not possible to assemble a non-full binary tree with
+        just the preorder & postorder traversals.
         """
         data_is_sufficient = (preorder and inorder) or (
-            postorder and inorder) or (preorder and postorder)
+            postorder and inorder)
         if not data_is_sufficient:
             raise InsufficientTraversalInformation(
                 "Specify at least 2 of the three modes to load a "
@@ -134,7 +148,7 @@ class TreeNode:
                         preorder=left_preorder,
                         inorder=left_inorder)
                 # if the root occurs before the end of the preorder.
-                if root_position < len(preorder):
+                if root_position < len(inorder):
                     # split the inorder traversal tree at the root.
                     # Take the right half
                     right_inorder = inorder[root_position + 1:]
@@ -149,19 +163,57 @@ class TreeNode:
             return node
         elif postorder and inorder:
             # If the postorder and inorder traversal information is provided.
-            node = None
-            return node
-        else:  # there's only one case remaining.
-            # if preorder and postorder are specified.
-            # This is the last possible combination.
-            node = None
+            # post order is in the order Left, Right, Root, so the last item
+            # is a root.
+            root = postorder[-1]
+            # create a node with that root.
+            node = TreeNode(root)
+            # identify the new postorder. This is the postorder without that root.
+            new_postorder = postorder[:-1]
+
+            # now Identify which is the left child of this node.
+            # this information is in the inorder traversal.
+
+            if root in inorder: # if the root is in the inorder traversal.
+                # find where it occurs.
+                root_position = inorder.index(root)
+                # split the inorder traversal list at that index.
+                left_inorder = inorder[:root_position]
+
+                if len(left_inorder) > 0:
+                    # filter the postorder so that it only contains items in
+                    # the left inorder traversal list.
+                    left_postorder = [
+                        n for n in new_postorder if n in left_inorder
+                    ]
+                    node.left_child = TreeNode.load(
+                        postorder=left_postorder,
+                        inorder=left_inorder)
+                # if the root occurs at the beginning of the postorder.
+                if root_position < len(inorder):
+                    # split the inorder traversal tree at the root.
+                    # take the right half.
+                    right_inorder = inorder[root_position + 1:]
+                    # if there *is* a right traversal tree.
+                    if len(right_inorder) > 0:
+                        # filter the postorder so that it only contains items
+                        # in the right inorder traversal list.
+                        right_postorder = [
+                            n for n in new_postorder if n in right_inorder
+                        ]
+                        node.right_child = TreeNode.load(
+                            postorder=right_postorder, inorder=right_inorder)
             return node
 
     @staticmethod
     def parse_files(preorder=None, postorder=None, inorder=None):
-        """Parses files and loads the tree from them."""
+        """Parses files and loads the tree from them.
+
+        The binary tree can be reassembled if at least one of the preorder
+        or postorder traversal information is provided alongwith the inorder
+        traversal."""
         data_is_sufficient = (preorder and inorder) or (
-            postorder and inorder) or (preorder and postorder)
+            postorder and inorder)
         if not data_is_sufficient:
             raise InsufficientTraversalInformation(
                 "Specify at least 2 of the three modes to load a "
@@ -191,7 +243,3 @@ class TreeNode:
             return TreeNode.load(
                 postorder=postorder_traversal,
                 inorder=inorder_traversal)
-        elif postorder and preorder:
-            return TreeNode.load(
-                postorder=postorder_traversal,
-                preorder=preorder_traversal)
