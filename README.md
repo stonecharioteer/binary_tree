@@ -4,8 +4,8 @@
 
 This module showcases how to implement a Binary Tree in Python.
 
-It implements serialization so that a tree can be written to a file and read
-back from said file.
+It implements serialization so that a tree can be written to disk and read
+back from disk.
 
 
 ## Setup and Running the Automated Tests
@@ -48,11 +48,12 @@ pip install binary_tree --no-index --find-links=dist/
 
 ## What's Going On?
 
-This module serializes and writes a Binary Tree into a cached file. It
-uses Python's `shelve` module, a module that allows us to implement database-
-like persistence on disk to retrieve Python objects. The advantage of using
-such an approach ensures that the entire tree is not loaded in memory all the
-time. Additionally, this allows us to use large trees.
+This module utilizes the fact that a binary tree can be serialized by
+storing 2 modes of traversal. Given the preorder and inorder traversal, or
+postorder and inorder traversal information, a binary tree can be reassembled.
+
+Hence, this module allows users to dump the tree to disk using these two
+files. This ensures that the user can read back the same tree.
 
 
 ## Usage
@@ -65,23 +66,53 @@ This library is written for Python 3. Do not attempt to use it with Python 2.x.
 
 import binary_tree as bt
 
-tree = bt.BinaryTree(cache="my_cached_file.db")
-tree[0] = "zero"
-tree[1] = "one"
-tree[2] = "two"
-tree[42] = "forty-two"
+node = bt.TreeNode(1)
+node.left_child = br.TreeNode(2)
+node.right_child = br.TreeNode(3)
+node.left_child.left_child = br.TreeNode(4)
+node.right_child.left_child = br.TreeNode(5)
 ```
 
-### Reading from a cache
+### Serialize the Tree
 
 ```python
-import binary_tree as bst
 
-tree = bt.BinaryTree(cache="my_cached_file.db")
-print(tree[0])
-# outputs "zero"
-print(tree[42])
-#outputs "forty-two"
+bt.TreeNode.traverse(node, mode="preorder") # Get the preorder traversal
+bt.TreeNode.traverse(node, mode="inorder") # Get the inorder traversal
+bt.TreeNode.traverse(node, mode="postorder") # Get the postorder traversal
+
+```
+
+### Dump the Tree to Disk
+
+```python
+
+# Save preorder and inorder traversal information
+node.save_to_disk(
+    file_prefix="my_binary_tree",
+    preorder=True,
+    inorder=True,
+    postorder=False)
+# Save postorder and inorder traversal information
+node.save_to_disk(
+    file_prefix="my_binary_tree",
+    preorder=False,
+    inorder=True,
+    postorder=True)
+```
+
+### Reading from Disk
+
+```python
+
+node = bt.TreeNode.parse_files(
+    preorder="my_binary_tree.preorder",
+    inorder="my_binary_tree.inorder")
+
+node = bt.TreeNode.parse_files(
+    postorder="my_binary_tree.postorder",
+    inorder="my_binary_tree.inorder")
+
 ```
 
 ## Caveats
@@ -105,6 +136,9 @@ I've implemented a rudimentary `@tail_call_optimized` decorator in this
 codebase but it is a small fix.
 
 Another caveat is that the retrieval is now only as fast the disk you are
-reading from. I'd instead write to a database since most databases
-use a manner of b-trees for their indexed columns.
+reading from. Additionally, if you're reading the entire tree to memory,
+if the tree has above 10 million nodes, you may have some issues with memory.
 
+I could also implement a memory map to solve that issue. Python comes with
+a built-in mmap module to achieve something of this sort. I am, however, unaware
+of its own caveats.
