@@ -16,65 +16,9 @@ class TreeNode:
         self.parent = parent
 
     def __repr__(self):
+        """Raw Representation."""
         repr_node = "<TreeNode [Value: {}]>".format(self.value)
         return repr_node
-
-    def __iter__(self):
-        if self:
-            if self.has_left_child():
-                for element in self.left_child:
-                    yield element
-            yield self.key
-            if self.has_right_child():
-                for element in self.right_child:
-                    yield element
-
-    @property
-    def position(self):
-        if self.is_leaf():
-            if self.is_left_child():
-                return "left leaf"
-            if self.is_right_child():
-                return "right leaf"
-        else:
-            if self.is_left_child():
-                return "left child"
-            if self.is_right_child():
-                return "right child"
-
-    def has_left_child(self):
-        """Check if this node has a left child."""
-        return self.left_child is not None
-
-    def has_right_child(self):
-        """Check if this node has a right child."""
-        return self.right_child is not None
-
-    def has_both_children(self):
-        return self.has_left_child() and self.has_right_child()
-
-    def is_root(self):
-        """Check if this node is a root node."""
-        return self.parent is None
-
-    def is_left_child(self):
-        """Check if this node is a left child."""
-        return (not self.is_root()) and (self.parent.left_child == self)
-
-    def is_right_child(self):
-        """Check if this node is a right child."""
-        return (not self.is_root()) and (self.parent.right_child == self)
-
-    def is_leaf(self):
-        """Checks if this node is a leaf, ie. it does not have children."""
-        return not (self.has_left_child() or self.has_right_child())
-
-    def has_children(self):
-        """Checks if this node has children."""
-        return not self.is_leaf()
-
-    def __eq__(self, other):
-        return self.value == other.value
 
     @staticmethod
     def traverse(node, mode="preorder"):
@@ -116,7 +60,7 @@ class TreeNode:
         return traversal
 
     def save_to_disk(
-        file_prefix, preorder=True, inorder=True, postorder=False):
+        self, file_prefix, preorder=True, inorder=True, postorder=False):
         """Saves a node and its children into 2 files.
         To check for a unique tree, you need one of two traversal information
         if the tree is not balanced or sorted.
@@ -125,37 +69,66 @@ class TreeNode:
             inorder = TreeNode.traverse(self, mode="inorder")
             with open("{}.inorder".format(file_prefix), "wb+") as f:
                 for node in inorder:
-                    f.write("{}\n".format(node))
+                    f.write("{}\n".format(node).encode("utf-8"))
         if preorder:
             preorder = TreeNode.traverse(self, mode="preorder")
             with open("{}.preorder".format(file_prefix), "wb+") as f:
                 for node in preorder:
-                    f.write("{}\n".format(node))
+                    f.write("{}\n".format(node).encode("utf-8"))
         if postorder:
             postorder = TreeNode.traverse(self, mode="postorder")
             with open("{}.postorder".format(file_prefix), "wb+") as f:
                 for node in postorder:
-                    f.write("{}\n".format(node))
+                    f.write("{}\n".format(node).encode("utf-8"))
 
     @staticmethod
     def load(preorder=None, postorder=None, inorder=None):
-        """Loads the binary tree given two of these three files."""
+        """Loads the binary tree given two of these three traversals."""
         data_is_sufficient = (preorder and inorder) or (
             postorder and inorder) or (preorder and postorder)
         if not data_is_sufficient:
             raise InsufficientTraversalInformation(
                 "Specify at least 2 of the three modes to load a "
-                "unique Binary Tree")
+                "unique Binary Tree.")
         if preorder and inorder:
-            pass
+            # Pick the first item of the preorder. This is the root node.
+            root = preorder[0]
+            # Create a node with that root.
+            node = TreeNode(root)
+            # Get all the nodes left of this root using the inorder traversal.
+            print("root: {}, preorder: {}, inorder: {}".format(
+                root, preorder, inorder))
+            if root in inorder:
+                root_position = inorder.index(root)
+            else:
+                root_position = -1
+
+            new_preorder = preorder[1:]
+            if root_position > 0:
+                left_inorder = inorder[:root_position]
+                if len(left_inorder) > 0:
+                    print("LEFT")
+                    node.left_child = TreeNode.load(
+                        preorder=new_preorder, inorder=left_inorder)
+
+            if -1 < root_position < len(preorder):
+                new_preorder = new_preorder[1:]
+                right_inorder = inorder[root_position + 1:]
+                if len(right_inorder) > 0:
+                    print("RIGHT")
+                    node.right_child = TreeNode.load(
+                        preorder=new_preorder, inorder=right_inorder)
+            return node
         elif postorder and inorder:
-            pass
+            node = None
+            return node
         elif preorder and postorder:
-            pass
+            node = None
+            return node
 
     @staticmethod
     def parse_files(preorder=None, postorder=None, inorder=None):
-
+        """Parses files and loads the tree from them."""
         data_is_sufficient = (preorder and inorder) or (
             postorder and inorder) or (preorder and postorder)
         if not data_is_sufficient:

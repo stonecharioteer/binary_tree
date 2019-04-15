@@ -37,7 +37,7 @@ def test_basic_serialize_inorder(basic_tree):
     assert serialized_tree == [4, 2, 5, 1, 3]
 
 
-def test_basic_serialize_preorder(basic_tree):
+def test_basic_serialize_postorder(basic_tree):
     """Tests the serialization of the basic tree with postorder traversal."""
     serialized_tree = TreeNode.traverse(basic_tree, mode="postorder")
     assert serialized_tree == [4, 5, 2, 3, 1]
@@ -48,7 +48,7 @@ def test_basic_deserialize_preorder_inorder(basic_tree):
     create the same tree."""
     basic_tree.save_to_disk("basic_tree")
 
-    deserialized_tree = TreeNode.load(
+    deserialized_tree = TreeNode.parse_files(
         preorder="basic_tree.preorder",
         inorder="basic_tree.inorder")
 
@@ -98,6 +98,7 @@ def longer_tree():
     yield root
     del root
 
+
 def test_longer_serialize_preorder(longer_tree):
     """Tests the serialization of the longer tree with preorder."""
     serialized_tree = TreeNode.traverse(longer_tree, mode="preorder")
@@ -113,7 +114,7 @@ def test_longer_serialize_inorder(longer_tree):
     ]
 
 
-def test_longer_serialize_preorder(longer_tree):
+def test_longer_serialize_postorder(longer_tree):
     """Tests the serialization of the longer tree with postorder traversal."""
     serialized_tree = TreeNode.traverse(longer_tree, mode="postorder")
     assert serialized_tree == [
