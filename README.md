@@ -168,7 +168,7 @@ unloading of the tree.
 
 ### Speed
 
-*Profile data for the ``test_giant_deserialize_preorder_inorder`` test**
+*Profile data for the ``test_giant_deserialize_preorder_inorder`` test*
 
 | ncalls | tottime | percall | cumtime | percall filename:lineno(function)                                    |
 |--------|---------|---------|---------|----------------------------------------------------------------------|
