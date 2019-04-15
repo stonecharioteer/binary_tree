@@ -67,10 +67,10 @@ This library is written for Python 3. Do not attempt to use it with Python 2.x.
 import binary_tree as bt
 
 node = bt.TreeNode(1)
-node.left_child = br.TreeNode(2)
-node.right_child = br.TreeNode(3)
-node.left_child.left_child = br.TreeNode(4)
-node.right_child.left_child = br.TreeNode(5)
+node.left_child = TreeNode(2)
+node.left_child.left_child = TreeNode(4)
+node.left_child.right_child = TreeNode(5)
+node.right_child = TreeNode(3)
 ```
 
 ### Serialize the Tree
