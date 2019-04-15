@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import sys
 
 import pytest
+
 from binary_tree import TreeNode
 
 
@@ -210,7 +212,9 @@ def giant_tree():
     node = TreeNode(1)
     node_ids = {1}
     node_ = node
-    size = 10**8
+    size = 10000
+    # re-enable this if checking with larger binary trees.
+    # sys.setrecursionlimit(size)
     while len(node_ids) < size:
         node_.left_child = TreeNode(get_random_node_value(size))
         node_.right_child = TreeNode(get_random_node_value(size))
@@ -232,14 +236,6 @@ def test_giant_deserialize_preorder_inorder(giant_tree):
         preorder="giant_tree.preorder",
         inorder="giant_tree.inorder")
 
-    assert TreeNode.traverse(
-        giant_tree, mode="preorder") == TreeNode.traverse(
-            deserialized_tree, mode="preorder")
+    assert isinstance(deserialized_tree, TreeNode)
 
-    assert TreeNode.traverse(
-        giant_tree, mode="postorder") == TreeNode.traverse(
-            deserialized_tree, mode="postorder")
-
-    assert TreeNode.traverse(
-        giant_tree, mode="inorder") == TreeNode.traverse(
-            deserialized_tree, mode="inorder")
+    assert TreeNode.traverse(deserialized_tree) == TreeNode.traverse(giant_tree)

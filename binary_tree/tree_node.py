@@ -4,7 +4,6 @@ from binary_tree.exceptions import (
     InvalidTraversalMode, InsufficientTraversalInformation,
     InvalidChildError, InvalidValueError)
 
-from binary_tree.tail_call_optimized import tail_call_optimized
 
 class TreeNode:
     """Class definition for each node of a binary tree."""
@@ -18,11 +17,15 @@ class TreeNode:
                 "how such a tree could be serialized, the author has "
                 "limited creation to trees wherein the value "
                 "must be integers.")
+
         self.value = value
+
         if left is not None:
             if not isinstance(left, TreeNode):
                 raise InvalidChildError("Nodes must of type TreeNode!")
+
         self.left_child = left
+
         if right is not None:
             if not isinstance(right, TreeNode):
                 raise InvalidChildError("Nodes must of type TreeNode!")
@@ -37,7 +40,6 @@ class TreeNode:
         return repr_node
 
     @staticmethod
-    @tail_call_optimized
     def traverse(node, mode="preorder"):
         """returns the tree traversal given a node in one of 3 modes.
         The accepted values for mode are: preorder, postorder or inorder.
@@ -92,6 +94,7 @@ class TreeNode:
             warnings.warn("You have saved insufficient information "
             "regarding the tree to disk. You will need the inorder "
             "traversal information to reassemble the tree.")
+
         if preorder:
             preorder = TreeNode.traverse(self, mode="preorder")
             with open("{}.preorder".format(file_prefix), "wb+") as f:
