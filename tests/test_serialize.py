@@ -127,18 +127,18 @@ def test_longer_deserialize_preorder_inorder(longer_tree):
     create the same tree."""
     longer_tree.save_to_disk("longer_tree")
 
-    deserialized_tree = TreeNode.load(
+    deserialized_tree = TreeNode.parse_files(
         preorder="longer_tree.preorder",
         inorder="longer_tree.inorder")
 
     assert TreeNode.traverse(
-        basic_tree, mode="preorder") == TreeNode.traverse(
+        longer_tree, mode="preorder") == TreeNode.traverse(
             deserialized_tree, mode="preorder")
 
     assert TreeNode.traverse(
-        basic_tree, mode="postorder") == TreeNode.traverse(
+        longer_tree, mode="postorder") == TreeNode.traverse(
             deserialized_tree, mode="postorder")
 
     assert TreeNode.traverse(
-        basic_tree, mode="inorder") == TreeNode.traverse(
+        longer_tree, mode="inorder") == TreeNode.traverse(
             deserialized_tree, mode="inorder")

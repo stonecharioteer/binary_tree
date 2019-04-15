@@ -1,23 +1,37 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from binary_tree.exceptions import (
-    InvalidTraversalMode, InsufficientTraversalInformation)
+    InvalidTraversalMode, InsufficientTraversalInformation,
+    InvalidChildError, InvalidValueError)
 
 class TreeNode:
     """Class definition for each node of a binary tree."""
 
-    def __init__(
-        self, value,
-        left=None, right=None, parent=None):
-        """Initializer method."""
+    def __init__(self, value, left=None, right=None):
+        """Initializer method.
+        Takes an integer value, a left node and a right node."""
+        if not isinstance(value, int):
+            raise InvalidValueError(
+                "Since this tree is created for the sake of demonstrating "
+                "how such a tree could be serialized, the author has "
+                "limited creation to trees wherein the value "
+                "must be integers.")
         self.value = value
+        if left is not None:
+            if not isinstance(left, TreeNode):
+                raise InvalidChildError("Nodes must of type TreeNode!")
         self.left_child = left
+        if right is not None:
+            if not isinstance(right, TreeNode):
+                raise InvalidChildError("Nodes must of type TreeNode!")
         self.right_child = right
-        self.parent = parent
 
     def __repr__(self):
         """Raw Representation."""
-        repr_node = "<TreeNode [Value: {}]>".format(self.value)
+        repr_node = "<TreeNode [Value: {}] [L: {} | R: {}]>".format(
+            self.value,
+            self.left_child.value if self.left_child else "-",
+            self.right_child.value if self.right_child else "-")
         return repr_node
 
     @staticmethod
@@ -83,7 +97,10 @@ class TreeNode:
 
     @staticmethod
     def load(preorder=None, postorder=None, inorder=None):
-        """Loads the binary tree given two of these three traversals."""
+        """Loads the binary tree given two of these three traversals.
+        If given preorder and inorder, it uses that.
+
+        """
         data_is_sufficient = (preorder and inorder) or (
             postorder and inorder) or (preorder and postorder)
         if not data_is_sufficient:
@@ -95,34 +112,48 @@ class TreeNode:
             root = preorder[0]
             # Create a node with that root.
             node = TreeNode(root)
-            # Get all the nodes left of this root using the inorder traversal.
-            print("root: {}, preorder: {}, inorder: {}".format(
-                root, preorder, inorder))
-            if root in inorder:
-                root_position = inorder.index(root)
-            else:
-                root_position = -1
-
+            # identify the new preorder. This is the preorder without the root.
             new_preorder = preorder[1:]
-            if root_position > 0:
-                left_inorder = inorder[:root_position]
-                if len(left_inorder) > 0:
-                    print("LEFT")
-                    node.left_child = TreeNode.load(
-                        preorder=new_preorder, inorder=left_inorder)
+            # Now, identify which is the left child of this node.
+            # This information is in the inorder traversal.
+            # Get all the nodes left of this root using the inorder traversal.
 
-            if -1 < root_position < len(preorder):
-                new_preorder = new_preorder[1:]
-                right_inorder = inorder[root_position + 1:]
-                if len(right_inorder) > 0:
-                    print("RIGHT")
-                    node.right_child = TreeNode.load(
-                        preorder=new_preorder, inorder=right_inorder)
+            if root in inorder:  # if the root is in the inorder traversal.
+                # find where it occurs.
+
+                root_position = inorder.index(root)
+                # split the inorder traversal list at that index.
+                left_inorder = inorder[:root_position]
+
+                if len(left_inorder) > 0:
+                    # filter the preorder so that it only contains items
+                    # in the left inorder traversal list.
+                    left_preorder = [
+                        n for n in new_preorder if n in left_inorder]
+                    node.left_child = TreeNode.load(
+                        preorder=left_preorder,
+                        inorder=left_inorder)
+                # if the root occurs before the end of the preorder.
+                if root_position < len(preorder):
+                    # split the inorder traversal tree at the root.
+                    # Take the right half
+                    right_inorder = inorder[root_position + 1:]
+                    # if there *is* a right traversal tree.
+                    if len(right_inorder) > 0:
+                        # filter the preorder so that it only contains items
+                        # in the right inorder traversal list.
+                        right_preorder = [
+                            n for n in new_preorder if n in right_inorder]
+                        node.right_child = TreeNode.load(
+                            preorder=right_preorder, inorder=right_inorder)
             return node
         elif postorder and inorder:
+            # If the postorder and inorder traversal information is provided.
             node = None
             return node
-        elif preorder and postorder:
+        else:  # there's only one case remaining.
+            # if preorder and postorder are specified.
+            # This is the last possible combination.
             node = None
             return node
 
@@ -138,19 +169,19 @@ class TreeNode:
         if preorder:
             with open(preorder, "rb+") as f:
                 preorder_traversal = [
-                    l.decode("ascii").strip() for l in f.readlines()
+                    int(l.decode("ascii").strip()) for l in f.readlines()
                     ]
 
         if inorder:
             with open(inorder, "rb+") as f:
                 inorder_traversal = [
-                    l.decode("ascii").strip() for l in f.readlines()
+                    int(l.decode("ascii").strip()) for l in f.readlines()
                     ]
 
         if postorder:
             with open(postorder, "rb+") as f:
                 postorder_traversal = [
-                    l.decode("ascii").strip() for l in f.readlines()
+                    int(l.decode("ascii").strip()) for l in f.readlines()
                     ]
         if preorder and inorder:
             return TreeNode.load(
